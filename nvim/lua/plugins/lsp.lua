@@ -12,9 +12,12 @@ return {
     config = function()
       require("mason-lspconfig").setup({
         ensure_installed = {
-          "ts_ls",        -- TypeScript/JavaScript
-          "gopls",        -- Go
-          "pyright",      -- Python
+          "ts_ls",           -- TypeScript/JavaScript
+          "gopls",           -- Go
+          "pyright",         -- Python
+          "vue_ls",           -- Vue Language Server
+          "html",            -- HTML Language Server
+          "cssls",           -- CSS Language Server
         },
       })
     end,
@@ -101,9 +104,35 @@ return {
 
       -- Enhanced LSP setup with completion capabilities
       local servers = {
-        ts_ls = {},
+        ts_ls = {
+          filetypes = { "javascript", "typescript" },
+        },
+        
+        -- Use vue_ls for Vue files
+        vue_ls = {
+          filetypes = { "vue" },
+        },
+        
         gopls = {},
-        pyright = {},
+        
+        pyright = {
+          settings = {
+            python = {
+              analysis = {
+                typeCheckingMode = "basic",
+                autoImportCompletions = true,
+              },
+            },
+          },
+        },
+        
+        html = {
+          filetypes = { "html" },
+        },
+        
+        cssls = {
+          filetypes = { "css", "scss", "less" },
+        },
       }
 
       for server, config in pairs(servers) do
@@ -111,19 +140,16 @@ return {
         lspconfig[server].setup(config)
       end
 
-      -- LSP keybindings
+      -- LSP keybindings and semantic highlighting
       vim.api.nvim_create_autocmd("LspAttach", {
         group = vim.api.nvim_create_augroup("UserLspConfig", {}),
         callback = function(ev)
-          local opts = { buffer = ev.buf }
-          vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
-          vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-          vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
-          vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
-          vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, opts)
-          vim.keymap.set("n", "<space>rn", vim.lsp.buf.rename, opts)
-          vim.keymap.set("n", "<space>ca", vim.lsp.buf.code_action, opts)
-          vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
+          local client = vim.lsp.get_client_by_id(ev.data.client_id)
+          
+          -- Enable semantic highlighting if supported
+          if client and client.server_capabilities.semanticTokensProvider then
+            vim.lsp.semantic_tokens.start(ev.buf, ev.data.client_id)
+          end
         end,
       })
     end,

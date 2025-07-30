@@ -32,4 +32,23 @@ require("lazy").setup({
   install = { colorscheme = { "habamax" } },
   -- automatically check for plugin updates
   checker = { enabled = true },
+
+-- Auto-pairs for brackets/quotes
+{
+  'windwp/nvim-autopairs',
+  event = "InsertEnter",
+  config = function()
+    require("nvim-autopairs").setup {}
+  end
+},
+
+-- Auto-close HTML tags
+{
+  'windwp/nvim-ts-autotag',
+  dependencies = 'nvim-treesitter/nvim-treesitter',
+  config = function()
+    require('nvim-ts-autotag').setup()
+  end
+}
+
 })
